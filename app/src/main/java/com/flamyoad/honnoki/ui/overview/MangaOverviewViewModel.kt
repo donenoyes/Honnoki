@@ -1,7 +1,6 @@
 package com.flamyoad.honnoki.ui.overview
 
 import androidx.lifecycle.*
-import androidx.paging.ExperimentalPagingApi
 import androidx.room.withTransaction
 import com.flamyoad.honnoki.common.State
 import com.flamyoad.honnoki.data.db.AppDatabase
@@ -15,8 +14,6 @@ import com.flamyoad.honnoki.ui.overview.model.ReaderChapter
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 
-@ExperimentalCoroutinesApi
-@ExperimentalPagingApi
 class MangaOverviewViewModel(
     private val db: AppDatabase,
     private val baseSource: BaseSource,
@@ -149,6 +146,7 @@ class MangaOverviewViewModel(
                     refreshGenres(url, mangaOverviewId.value)
                     refreshChapterList(url, mangaOverviewId.value)
                 }
+                else -> {}
             }
         }
     }
@@ -163,6 +161,7 @@ class MangaOverviewViewModel(
                     db.genreDao().insertAll(genreListWithId)
                 }
             }
+            else -> {}
         }
     }
 
@@ -176,6 +175,7 @@ class MangaOverviewViewModel(
                     db.authorDao().insertAll(authorListWithId)
                 }
             }
+            else -> {}
         }
     }
 
@@ -193,6 +193,7 @@ class MangaOverviewViewModel(
                     }
                 }
             }
+            else -> {}
         }
     }
 

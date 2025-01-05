@@ -1,48 +1,46 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-kapt'
+apply plugin: 'com.google.devtools.ksp'
 apply plugin: 'kotlin-parcelize'
 apply plugin: 'androidx.navigation.safeargs'
 apply plugin: 'com.google.gms.google-services'
 apply plugin: 'com.google.firebase.crashlytics'
 
 android {
-    compileSdkVersion 30
+    compileSdk 34
 
     compileOptions {
         coreLibraryDesugaringEnabled true
-
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_1_8
+        jvmTarget = JavaVersion.VERSION_11
     }
 
     defaultConfig {
         applicationId "com.flamyoad.honnoki"
         minSdkVersion 21
-        targetSdkVersion 30
+        targetSdkVersion 31
         versionCode 11
         versionName "1.0.10"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
-        javaCompileOptions {
-            annotationProcessorOptions {
-                arguments += ["room.schemaLocation":
-                                      "$projectDir/schemas".toString()]
-            }
+        ksp {
+            arg("room.schemaLocation", "$projectDir/schemas")
         }
     }
 
     buildTypes {
         debug {
-            manifestPlaceholders = [crashlyticsCollectionEnabled:"false"]
+            manifestPlaceholders = [crashlyticsCollectionEnabled: "false"]
         }
         release {
-            manifestPlaceholders = [crashlyticsCollectionEnabled:"true"]
+            manifestPlaceholders = [crashlyticsCollectionEnabled: "true"]
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             ndk {
@@ -52,8 +50,19 @@ android {
     }
 
     buildFeatures {
-        viewBinding {
-            enabled true
+        viewBinding true
+        compose true
+    }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.4.7"
+    }
+
+    // https://kotlinlang.org/docs/opt-in-requirements.html#module-wide-opt-in
+    tasks.withType(KotlinCompile).configureEach {
+        compilerOptions {
+            freeCompilerArgs.add("-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi")
+            freeCompilerArgs.add("-opt-in=androidx.paging.ExperimentalPagingApi")
         }
     }
 
@@ -66,11 +75,10 @@ android {
 }
 
 dependencies {
-    implementation 'androidx.test:core-ktx:1.3.0'
-    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.1.5'
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.2.0'
+    implementation 'androidx.test:core-ktx:1.4.0'
 
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation 'androidx.appcompat:appcompat:1.3.0'
     implementation 'androidx.core:core-ktx:1.5.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
@@ -91,65 +99,88 @@ dependencies {
     implementation "androidx.preference:preference-ktx:$preference_version"
 
     // Kotlin Flow
-    def flow_version = '1.5.0'
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$flow_version"
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$flow_version"
+    def coroutine_version = '1.5.0'
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutine_version"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutine_version"
     testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:1.5.1"
+
+    def composeBom = platform('androidx.compose:compose-bom:2023.10.01')
+    implementation composeBom
+    androidTestImplementation composeBom
+
+    // Material Design 3
+    implementation 'androidx.compose.material3:material3'
+
+    // Android Studio Preview support
+    implementation 'androidx.compose.ui:ui-tooling-preview'
+    debugImplementation 'androidx.compose.ui:ui-tooling'
+
+    // UI Tests
+    androidTestImplementation 'androidx.compose.ui:ui-test-junit4'
+    debugImplementation 'androidx.compose.ui:ui-test-manifest'
+
+    implementation 'androidx.activity:activity-compose:1.8.2'
+    implementation 'androidx.compose.runtime:runtime-livedata'
 
     def retrofit_version = '2.9.0'
     implementation "com.squareup.retrofit2:retrofit:$retrofit_version"
     implementation "com.squareup.retrofit2:converter-moshi:$retrofit_version"
     implementation "com.squareup.okhttp3:logging-interceptor:4.9.0"
 
-    def moshi_version = "1.12.0"
+    def moshi_version = "1.14.0"
     implementation "com.squareup.moshi:moshi:$moshi_version"
     implementation "com.squareup.moshi:moshi-adapters:$moshi_version"
-    kapt "com.squareup.moshi:moshi-kotlin-codegen:$moshi_version"
+    ksp "com.squareup.moshi:moshi-kotlin-codegen:$moshi_version"
 
-    def lifecycle_version = "2.4.0-alpha02"
+    def lifecycle_version = "2.6.2"
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version"
     implementation "androidx.lifecycle:lifecycle-livedata-ktx:$lifecycle_version"
     implementation "androidx.lifecycle:lifecycle-runtime-ktx:$lifecycle_version"
     implementation "androidx.lifecycle:lifecycle-common-java8:$lifecycle_version"
+    implementation "androidx.lifecycle:lifecycle-runtime-compose:$lifecycle_version"
+    implementation "androidx.lifecycle:lifecycle-viewmodel-compose:$lifecycle_version"
 
-    def room_version = "2.4.0-alpha04"
+    def room_version = "2.5.2"
     implementation "androidx.room:room-runtime:$room_version"
-    kapt "androidx.room:room-compiler:$room_version"
+    ksp "androidx.room:room-compiler:$room_version"
     implementation "androidx.room:room-ktx:$room_version"
+    implementation "androidx.room:room-paging:$room_version"
     testImplementation "androidx.room:room-testing:$room_version"
     androidTestImplementation "androidx.room:room-testing:$room_version"
 
     def glide_version = "4.11.0"
     implementation "com.github.bumptech.glide:glide:$glide_version"
-    kapt "com.github.bumptech.glide:compiler:$glide_version"
+    ksp "com.github.bumptech.glide:compiler:$glide_version"
 
-    def paging_version = "3.1.0-alpha01"
-    implementation("androidx.paging:paging-runtime:$paging_version") {
-        exclude group: 'org.jetbrains.kotlinx', module: 'kotlinx-coroutines-core-jvm'
-    }
+    def paging_version = "3.2.1"
+    implementation "androidx.paging:paging-runtime:$paging_version"
     testImplementation "androidx.paging:paging-common:$paging_version"
 
-    def work_version = "2.5.0"
+    def work_version = "2.8.0"
     implementation "androidx.work:work-runtime-ktx:$work_version" // Kotlin + coroutines
 
-    def nav_version = "2.4.0-alpha03"
+    def nav_version = "2.7.6"
     implementation "androidx.navigation:navigation-fragment-ktx:$nav_version"
     implementation "androidx.navigation:navigation-ui-ktx:$nav_version"
     androidTestImplementation "androidx.navigation:navigation-testing:$nav_version"
 
-    def koin_version = '3.0.2'
+    def koin_version = '3.3.3'
+    def koin_compose_version = '3.3.0'
     // Koin main features for Android (Scope,ViewModel ...)
     implementation "io.insert-koin:koin-android:$koin_version"
-    // Koin Android - experimental builder extensions
-    implementation "io.insert-koin:koin-android-ext:$koin_version"
     // Koin for Jetpack WorkManager
     implementation "io.insert-koin:koin-androidx-workmanager:$koin_version"
+    // Koin for Jetpack Compose
+    implementation "io.insert-koin:koin-androidx-compose:$koin_compose_version"
 
     def datastore_version = '1.0.0-beta01'
     // Typed DataStore (Typed API surface, such as Proto)
     implementation "androidx.datastore:datastore:$datastore_version"
     // Preferences DataStore (SharedPreferences like APIs)
     implementation "androidx.datastore:datastore-preferences:$datastore_version"
+
+    def androidx_browser_version = '1.5.0'
+    implementation "androidx.browser:browser:$androidx_browser_version"
 
     // Firebase
     implementation platform('com.google.firebase:firebase-bom:28.2.1')
@@ -165,22 +196,23 @@ dependencies {
 
     implementation 'org.jsoup:jsoup:1.13.1'
 
-    implementation 'gun0912.ted:tedpermission:2.2.3'
+    implementation 'io.github.ParkSangGwon:tedpermission:3.4.2'
 
     implementation 'com.davemorrissey.labs:subsampling-scale-image-view-androidx:3.10.0'
 
-    implementation 'com.github.florent37:shapeofview:1.4.7'
+    implementation 'io.github.florent37:shapeofview:1.4.7'
 
     implementation 'androidx.palette:palette-ktx:1.0.0'
 
-    implementation 'com.google.android:flexbox:2.0.1'
+    implementation 'com.google.android.flexbox:flexbox:3.0.0'
 
     implementation 'com.github.Kennyc1012:MultiStateView:2.2.0'
 
     implementation 'com.simplecityapps:recyclerview-fastscroll:2.0.1'
 
-    implementation 'com.scwang.smart:refresh-layout-kernel:2.0.3'
-    implementation 'com.scwang.smart:refresh-header-classics:2.0.3'
+    implementation 'io.github.scwang90:refresh-layout-kernel:2.1.1'
+    implementation 'io.github.scwang90:refresh-header-classics:2.1.1'
+    implementation 'io.github.scwang90:refresh-footer-classics:2.1.1'
 
     implementation 'jp.wasabeef:recyclerview-animators:4.0.2'
 
@@ -196,6 +228,6 @@ dependencies {
 
     implementation 'com.facebook.shimmer:shimmer:0.5.0'
 
-    debugImplementation "com.github.YarikSOffice.Venom:venom:0.4.1"
-    releaseImplementation "com.github.YarikSOffice.Venom:venom-no-op:0.4.1"
+    debugImplementation "com.github.YarikSOffice.Venom:venom:0.6.0"
+    releaseImplementation "com.github.YarikSOffice.Venom:venom-no-op:0.6.0"
 }

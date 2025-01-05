@@ -14,13 +14,13 @@ import android.view.ContextMenu
 import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.text.set
 import androidx.core.text.toSpannable
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.paging.ExperimentalPagingApi
 import com.afollestad.materialdialogs.MaterialDialog
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DataSource
@@ -46,7 +46,6 @@ import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import com.kennyc.view.MultiStateView
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -55,9 +54,8 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
 import java.io.File
 
-@ExperimentalCoroutinesApi
-@ExperimentalPagingApi
 class MangaOverviewActivity : AppCompatActivity() {
+
     private var _binding: ActivityMangaOverviewBinding? = null
     val binding get() = requireNotNull(_binding)
 
@@ -171,8 +169,8 @@ class MangaOverviewActivity : AppCompatActivity() {
                             showToolbarArea(ToolbarState.COLLAPSED)
                             swipeRefreshLayout.isEnabled = false
                         }
-                        State.IDLE -> {
-                        }
+                        State.IDLE -> {}
+                        else -> {}
                     }
                 }
             }
@@ -384,10 +382,9 @@ class MangaOverviewActivity : AppCompatActivity() {
         } else {
             Uri.parse(overview.link)
         }
-        val intent = Intent(Intent.ACTION_VIEW, uri)
-        if (intent.resolveActivity(packageManager) != null) {
-            startActivity(intent)
-        }
+        val intent = CustomTabsIntent.Builder()
+            .build()
+        intent.launchUrl(this, uri)
     }
 
     private fun startReading() {

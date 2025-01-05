@@ -2,7 +2,6 @@ package com.flamyoad.honnoki
 
 import android.app.Application
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.paging.ExperimentalPagingApi
 import com.flamyoad.honnoki.data.preference.UiPreference
 import com.flamyoad.honnoki.di.*
 import com.github.venom.Venom
@@ -15,6 +14,7 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.component.inject
 import org.koin.core.context.startKoin
+import org.koin.core.logger.Level
 import timber.log.Timber
 
 class MyApplication : Application() {
@@ -23,7 +23,6 @@ class MyApplication : Application() {
 
     val applicationScope = MainScope()
 
-    @OptIn(ExperimentalPagingApi::class)
     override fun onCreate() {
         super.onCreate()
 
@@ -46,7 +45,7 @@ class MyApplication : Application() {
         )
 
         startKoin {
-            androidLogger()
+            androidLogger(Level.ERROR)
             androidContext(this@MyApplication)
             modules(appModules)
         }

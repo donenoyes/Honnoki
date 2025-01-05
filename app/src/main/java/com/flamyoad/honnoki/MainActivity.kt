@@ -8,13 +8,11 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
-import androidx.paging.ExperimentalPagingApi
 import com.flamyoad.honnoki.databinding.ActivityMainBinding
 import kotlinx.coroutines.flow.collectLatest
 import java.lang.IllegalArgumentException
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
-@ExperimentalPagingApi
 class MainActivity : AppCompatActivity() {
 
     private val viewModel: MainViewModel by viewModel()
@@ -57,6 +55,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
         // Remove action mode in Bookmark screen before exiting app
         if (viewModel.actionModeEnabled().value) {
@@ -65,11 +64,9 @@ class MainActivity : AppCompatActivity() {
         }
 
         // Pop fragment in the nav backstack if there is any
-        val currentNavFragment =
-            supportFragmentManager.fragments.first { it.isVisible } as NavHostFragment
-        if (currentNavFragment.navController.backQueue.size > 2) {
-            currentNavFragment.navController.navigateUp()
-        } else {
+        val currentNavFragment = supportFragmentManager.fragments.first { it.isVisible } as NavHostFragment
+        val hasPoppedBackstack = currentNavFragment.navController.popBackStack()
+        if (!hasPoppedBackstack) {
             super.onBackPressed()
         }
     }
